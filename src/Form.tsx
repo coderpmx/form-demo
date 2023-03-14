@@ -24,6 +24,7 @@ interface Values {
   price: string;
 }
 
+// 表单初始化数据
 const initialValues: Values = {
   title: "",
   type: "single",
@@ -32,6 +33,7 @@ const initialValues: Values = {
   price: "",
 };
 
+// 验证规则
 const validationSchema = yup.object({
   title: yup
     .string()
@@ -48,13 +50,44 @@ const validationSchema = yup.object({
     .string()
     .min(3, "Description must be at least 3 characters")
     .max(1000, "Description must be less than 1000 characters"),
-  price: yup.number().required("Price is required"),
+  price: yup
+    .number()
+    .min(1, "Price must be at least 1")
+    .required("Price is required"),
 });
+
+interface WrapProps {
+  formik: any;
+  name: string;
+  [otherProps: string]: any;
+}
+// 封装基础基础表单逻辑
+const WrapTextField: React.FC<React.PropsWithChildren<WrapProps>> = ({
+  formik,
+  name,
+  children,
+  ...props
+}) => {
+  return (
+    <TextField
+      value={formik.values[name]}
+      helperText={formik.errors[name]}
+      onChange={formik.handleChange}
+      name={name}
+      {...props}
+    >
+      {children}
+    </TextField>
+  );
+};
 
 function Form() {
   const formik = useFormik({
     initialValues,
     validationSchema,
+    validateOnChange: false,
+    validateOnBlur: false,
+
     onSubmit: (values: Values) => {
       alert(JSON.stringify(values, null, 2));
     },
@@ -70,59 +103,49 @@ function Form() {
             p: 4,
             "& .MuiFormHelperText-root": {
               color: red[500],
+              fontStyle: "italic",
             },
           }}
         >
           <Stack direction="row" justifyContent="space-between" spacing={1}>
-            <TextField
+            <WrapTextField
               label="标题"
               name="title"
-              value={formik.values.title}
-              helperText={formik.errors.title}
-              onChange={formik.handleChange}
-            ></TextField>
-            <TextField
+              formik={formik}
+            ></WrapTextField>
+            <WrapTextField
               select
               label="类型"
-              // id="type"
               name="type"
-              value={formik.values.type}
-              defaultValue="single"
               sx={{ flex: "1" }}
-              onChange={formik.handleChange}
+              formik={formik}
             >
               {currencies.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
                   {option.label}
                 </MenuItem>
               ))}
-            </TextField>
+            </WrapTextField>
           </Stack>
           <Stack sx={{ height: 400 }} justifyContent="space-evenly">
-            <TextField
+            <WrapTextField
               label="副标题"
               name="subTitle"
-              value={formik.values.subTitle}
-              helperText={formik.errors.subTitle}
-              onChange={formik.handleChange}
-            ></TextField>
-            <TextField
+              formik={formik}
+            ></WrapTextField>
+            <WrapTextField
               label="描述"
               name="description"
               multiline
               rows={4}
-              value={formik.values.description}
-              helperText={formik.errors.description}
-              onChange={formik.handleChange}
-            ></TextField>
-            <TextField
+              formik={formik}
+            ></WrapTextField>
+            <WrapTextField
               label="价格"
               name="price"
               type="number"
-              value={formik.values.price}
-              helperText={formik.errors.price}
-              onChange={formik.handleChange}
-            ></TextField>
+              formik={formik}
+            ></WrapTextField>
             <Button variant="contained" type="submit">
               提交
             </Button>
